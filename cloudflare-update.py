@@ -1,14 +1,14 @@
 import json
 import warnings
+import logging
 
 import requests
 
 import config
 
 
-warnings.filterwarnings("ignore")
-
 CLOUDFLARE_API_URL = 'https://www.cloudflare.com/api_json.html'
+
 
 def get_ip():
     return requests.get('https://nettool.herokuapp.com/ip').text
@@ -26,11 +26,11 @@ def get_rec(domain):
             return record
 
 def update_record_if_changed(rec, ip):
-    if(ip_changed(rec, ip)):
-        print 'Changing DNS record'
+    if (ip_changed(rec, ip)):
+        logging.info('Changing DNS record')
         edit(rec, ip)
     else:
-        print 'DNS record not changed'
+        logging.info('DNS record not changed')
 
 def ip_changed(rec, ip):
     return rec['content'] != ip
@@ -46,15 +46,32 @@ def edit(rec, ip):
         'content': ip,
         'type': 'A',
         'service_mode': 0,
-        'ttl': 120
+        'ttl': 300
     }
     request = requests.post(CLOUDFLARE_API_URL, data)
 
-ip = get_ip()
-print 'My ip is ' + ip
-print 'Getting rec_id for ' + config.home_domain
-rec = get_rec(config.home_domain)
-print config.home_domain + 'record ip domain is ' + rec['content']
-print config.home_domain + 'rec_id for domain is ' + rec['rec_id']
-update_record_if_changed(rec, ip)
-print 'Finished'
+
+def configure_loggers():
+    warnings.filterwarnings("ignore")
+    logging.basicConfig(filename='cloudflare-update.log', level=logging.INFO, format='%(asctime)s |  %(message)s')
+    logging.getLogger("requests").setLevel(logging.WARNING)
+
+
+def main():
+    logging.info('Starting')
+    ip = get_ip()
+    logging.info('My ip is ' + ip)
+    rec = get_rec(config.home_domain)
+    logging.info(config.home_domain + ' record ip domain is ' + rec['content'])
+    logging.info(config.home_domain + ' rec_id for domain is ' + rec['rec_id'])
+    update_record_if_changed(rec, ip)
+    logging.info('Finished')
+
+
+if __name__ == "__main__":
+    try:
+        configure_loggers()
+        main()
+    except:
+        logging.exception('Got exception')
+        raise
