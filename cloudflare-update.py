@@ -11,7 +11,9 @@ CLOUDFLARE_API_URL = 'https://www.cloudflare.com/api_json.html'
 
 
 def get_ip():
-    return requests.get('https://nettool.herokuapp.com/ip').text
+    ip = requests.get('https://nettool.herokuapp.com/ip').text
+    logging.info('My ip is ' + ip)
+    return ip
 
 def get_rec(domain):
     data = {
@@ -23,6 +25,7 @@ def get_rec(domain):
     records = json.loads(requests.post(CLOUDFLARE_API_URL, data).text)['response']['recs']['objs']
     for record in records:
         if (record['name'] == domain):
+            logging.info(config.home_domain + ' ip is ' + record['content'])
             return record
 
 def update_record_if_changed(rec, ip):
@@ -58,19 +61,16 @@ def configure_loggers():
 
 
 def main():
+    configure_loggers()
     logging.info('Starting')
     ip = get_ip()
-    logging.info('My ip is ' + ip)
     rec = get_rec(config.home_domain)
-    logging.info(config.home_domain + ' record ip domain is ' + rec['content'])
-    logging.info(config.home_domain + ' rec_id for domain is ' + rec['rec_id'])
     update_record_if_changed(rec, ip)
     logging.info('Finished')
 
 
 if __name__ == "__main__":
     try:
-        configure_loggers()
         main()
     except:
         logging.exception('Got exception')
