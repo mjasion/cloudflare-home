@@ -11,7 +11,7 @@ CLOUDFLARE_API_URL = 'https://www.cloudflare.com/api_json.html'
 
 
 def get_ip():
-    ip = requests.get('https://nettool.herokuapp.com/ip').text
+    ip = requests.get('http://wtfismyip.com/text').text.strip()
     logging.info('My ip is ' + ip)
     return ip
 
