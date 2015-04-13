@@ -49,7 +49,7 @@ def edit(rec, ip):
         'content': ip,
         'type': 'A',
         'service_mode': 0,
-        'ttl': 300
+        'ttl': config.ttl
     }
     request = requests.post(CLOUDFLARE_API_URL, data)
 
